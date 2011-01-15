@@ -370,6 +370,10 @@ function publish_achievements
     cd "${git_achievements_dir}"
 
     user=`git config --global user.name`
+    if [ ! -e .gh-pages ]; then
+        git clone . ./.gh-pages -b gh-pages
+    fi
+    cd ./.gh-pages
 
 echo "
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -385,7 +389,7 @@ echo "
     echo "<h2>${user}'s Git Achievements</h2>" >> index.html
 
     # STATS
-    cat git-achievements | grep 'unlock_achievement ' | grep -v ' sed ' | grep -v '\${' | sed -e 's/.*unlock_achievement //g' -e 's/^"//g' -e 's/"$//g' -e 's/\$power/X/g' -e 's/\$count/X/g' -e 's/\$hooks/X/g' | sort | awk -F"\" \"" '{ print "<li><div class=\"title\">" $1 "</div><div class=\"info\">" $2 "</div></li>" }' | link_to_git_docs > all.html
+    cat ../git-achievements | grep 'unlock_achievement ' | grep -v ' sed ' | grep -v '\${' | sed -e 's/.*unlock_achievement //g' -e 's/^"//g' -e 's/"$//g' -e 's/\$power/X/g' -e 's/\$count/X/g' -e 's/\$hooks/X/g' | sort | awk -F"\" \"" '{ print "<li><div class=\"title\">" $1 "</div><div class=\"info\">" $2 "</div></li>" }' | link_to_git_docs > all.html
     total=`cat all.html | wc -l`
 
     unlockedCount=`clean_logged_achievements | awk '{ if (NR % 2 != 0) print $0 }' | sed -e 's/Apprentice //g' -e 's/Master //g' -e 's/(.*//g' | sort | uniq | wc -l`
@@ -462,6 +466,8 @@ There are $total Achievements. Some achievements can be leveled up depending on 
         message="New achievement $1"
     fi
     git commit -qm "${message}"
+    git push origin gh-pages
+    cd ..
     git push origin gh-pages
 }
 
